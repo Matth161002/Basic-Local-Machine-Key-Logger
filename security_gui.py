@@ -9,6 +9,9 @@ class KeyloggerGUI:
     def __init__(self, root):
         """Initialise the application window and interface."""
         self.root = root
+        self.logging_active = False
+        self.key_binding_id = None
+        self.keystroke_count = 0
 
         self.root.title("Local Key Logger")
         self.root.geometry("1000x650")
@@ -126,7 +129,7 @@ class KeyloggerGUI:
         self.build_login_tab()
 
     def build_keystroke_tab(self):
-        """Create the keystroke log table."""
+        """Create the keystroke log table and test input."""
         frame = ttk.Frame(
             self.notebook,
             padding=5
@@ -135,6 +138,31 @@ class KeyloggerGUI:
         self.notebook.add(
             frame,
             text="Keystroke Log"
+        )
+
+        instruction = ttk.Label(
+            frame,
+            text="Start logging, then type in the application window to capture keyboard input."
+        )
+
+        instruction.grid(
+            row=0,
+            column=0,
+            columnspan=2,
+            sticky="w",
+            pady=(0, 5)
+        )
+
+        self.capture_entry = ttk.Entry(
+            frame
+        )
+
+        self.capture_entry.grid(
+            row=1,
+            column=0,
+            columnspan=2,
+            sticky="ew",
+            pady=(0, 10)
         )
 
         columns = ("key",)
@@ -167,19 +195,19 @@ class KeyloggerGUI:
         )
 
         self.keystroke_tree.grid(
-            row=0,
+            row=2,
             column=0,
             sticky="nsew"
         )
 
         scrollbar.grid(
-            row=0,
+            row=2,
             column=1,
             sticky="ns"
         )
 
         frame.rowconfigure(
-            0,
+            2,
             weight=1
         )
 
@@ -266,7 +294,16 @@ class KeyloggerGUI:
         )
 
     def start_logging(self):
-        """Update the interface to indicate that logging is active."""
+        """Start capturing keyboard input within the application."""
+        if self.logging_active:
+            return
+
+        self.logging_active = True
+        self.key_binding_id = self.root.bind(
+            "<KeyPress>",
+            self.handle_keypress
+        )
+
         self.status_label.config(
             text="Status: Logging"
         )
@@ -280,7 +317,16 @@ class KeyloggerGUI:
         )
 
     def stop_logging(self):
-        """Update the interface to indicate that logging has stopped."""
+        """Stop capturing keyboard input."""
+        if self.key_binding_id is not None:
+            self.root.unbind(
+                "<KeyPress>",
+                self.key_binding_id
+            )
+
+        self.logging_active = False
+        self.key_binding_id = None
+
         self.status_label.config(
             text="Status: Stopped"
         )
@@ -293,6 +339,46 @@ class KeyloggerGUI:
             state=tk.DISABLED
         )
 
+    def handle_keypress(self, event):
+        """Display a keyboard event captured within the application."""
+        if not self.logging_active:
+            return
+
+        key = self.format_key_event(event)
+
+        self.keystroke_tree.insert(
+            "",
+            tk.END,
+            values=(key,)
+        )
+
+        self.keystroke_tree.yview_moveto(
+            1
+        )
+
+        self.keystroke_count += 1
+
+        self.key_count_label.config(
+            text=f"Keystrokes: {self.keystroke_count}"
+        )
+
+    @staticmethod
+    def format_key_event(event):
+        """Convert a Tkinter keyboard event into a readable value."""
+        if event.keysym == "space":
+            return " "
+
+        if event.keysym == "Return":
+            return "[Enter]"
+
+        if event.keysym == "BackSpace":
+            return "[Backspace]"
+
+        if event.char:
+            return event.char
+
+        return f"[{event.keysym}]"
+
     def clear_capture(self):
         """Clear captured data from the interface."""
         self.keystroke_tree.delete(
@@ -302,6 +388,8 @@ class KeyloggerGUI:
         self.login_tree.delete(
             *self.login_tree.get_children()
         )
+
+        self.keystroke_count = 0
 
         self.key_count_label.config(
             text="Keystrokes: 0"
@@ -314,7 +402,8 @@ class KeyloggerGUI:
         self.stop_logging()
 
     def close_application(self):
-        """Close the application."""
+        """Stop logging and close the application."""
+        self.stop_logging()
         self.root.destroy()
 
 
