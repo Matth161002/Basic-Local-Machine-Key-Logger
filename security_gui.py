@@ -12,6 +12,7 @@ class KeyloggerGUI:
         self.logging_active = False
         self.key_binding_id = None
         self.keystroke_count = 0
+        self.captured_text = ""
 
         self.root.title("Local Key Logger")
         self.root.geometry("1000x650")
@@ -345,6 +346,7 @@ class KeyloggerGUI:
             return
 
         key = self.format_key_event(event)
+        self.update_captured_text(event)
 
         self.keystroke_tree.insert(
             "",
@@ -361,6 +363,23 @@ class KeyloggerGUI:
         self.key_count_label.config(
             text=f"Keystrokes: {self.keystroke_count}"
         )
+
+    def update_captured_text(self, event):
+        """Update the internal text representation of captured input."""
+        if event.keysym == "BackSpace":
+            self.captured_text = self.captured_text[:-1]
+            return
+
+        if event.keysym == "Return":
+            self.captured_text += "\\n"
+            return
+
+        if event.keysym == "Tab":
+            self.captured_text += "\\t"
+            return
+
+        if event.char:
+            self.captured_text += event.char
 
     @staticmethod
     def format_key_event(event):
@@ -390,6 +409,7 @@ class KeyloggerGUI:
         )
 
         self.keystroke_count = 0
+        self.captured_text = ""
 
         self.key_count_label.config(
             text="Keystrokes: 0"
