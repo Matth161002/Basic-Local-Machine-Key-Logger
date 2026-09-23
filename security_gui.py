@@ -333,3 +333,5 @@ class KeyloggerGUI:
         self.capture_entry.delete(0, tk.END)
 
     def close_application(self):
+        """Close the application window."""
+        self.destroy()
