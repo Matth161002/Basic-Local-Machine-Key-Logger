@@ -1,7 +1,7 @@
 import tkinter as tk
 from tkinter import ttk
 from credential_detection import CredentialDetector
-from pynput import keyboard  # Integrated global keyboard hooks
+from pynput import keyboard
 
 
 class KeyloggerGUI:
@@ -11,7 +11,7 @@ class KeyloggerGUI:
         """Initialise the application window and interface."""
         self.root = root
         self.logging_active = False
-        self.listener = None  # Replaced key_binding_id with a thread listener reference
+        self.listener = None
         self.keystroke_count = 0
         self.captured_text = ""
         self.credential_detector = CredentialDetector()
@@ -236,7 +236,6 @@ class KeyloggerGUI:
 
         self.logging_active = True
         
-        # Initialise and start the non-blocking background listener thread
         self.listener = keyboard.Listener(on_press=self.handle_pynput_keypress)
         self.listener.start()
 
@@ -247,7 +246,7 @@ class KeyloggerGUI:
     def stop_logging(self):
         """Stop capturing keyboard input."""
         if self.listener is not None:
-            self.listener.stop()  # Safely stop the background thread loop
+            self.listener.stop()
             self.listener = None
 
         self.logging_active = False
@@ -260,7 +259,6 @@ class KeyloggerGUI:
         if not self.logging_active:
             return
 
-        # Explicitly forward the event via root.after to keep updates inside Tkinter's core thread
         self.root.after(0, self.process_keypress_event, key)
 
     def process_keypress_event(self, key):
@@ -345,3 +343,5 @@ def main():
     root.mainloop()
 
 
+if __name__ == "__main__":
+    main()
