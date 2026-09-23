@@ -334,4 +334,5 @@ class KeyloggerGUI:
 
     def close_application(self):
         """Close the application window."""
-        self.destroy()
+        self.stop_logging()
+        self.root.destroy()
