@@ -11,9 +11,9 @@ The project started as a simple `pynput` key logger and has been developed into 
 - Start, stop and clear controls
 - Live keystroke display
 - Keystroke counter
-- Suspected login detection
+- Suspected login credential detection
 - Separate Username and Password display
-- Basic credential-pattern detection
+- Basic credential-pattern detection for identifying likely username and password combinations
 - Automated tests for the detection logic
 - Windows application icon
 
